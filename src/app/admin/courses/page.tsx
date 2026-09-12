@@ -2,20 +2,13 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
 import TopNav from "@/components/TopNav";
 import AdminCurriculum from "@/components/AdminCurriculum";
-import BackButton from "@/components/BackButton";
 
-// داخل صفحة courses:
-<div className="flex items-center justify-between">
-  <div>
-    <h1 className="text-2xl font-bold">إدارة المقررات</h1>
-  </div>
-  <BackButton fallback="/admin" label="لوحة التحكم" />
-</div>
 export default async function AdminCoursesPage() {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -23,18 +16,28 @@ export default async function AdminCoursesPage() {
     .select("full_name, role")
     .eq("id", user.id)
     .single();
+
   if (!profile || profile.role !== "admin") redirect("/dashboard");
 
   const { data: courses } = await supabase
     .from("courses")
-    .select("id, title, code, description, is_published, chapters(id, title, order_index, lectures(id, title, order_index, youtube_unlisted_id))")
+    .select("id, title, code, description, is_published")
     .order("created_at", { ascending: false });
 
+  const navProps: any = {
+    role: "admin",
+    fullName: profile?.full_name ?? "Admin",
+    userName: profile?.full_name ?? "Admin",
+    user: profile,
+  };
+
   return (
-    <main className="min-h-screen bg-nh-black">
-      <TopNav role="admin" fullName={profile.full_name} />
+    <main className="min-h-screen bg-nh-black text-white" dir="rtl">
+      <TopNav {...navProps} />
       <section className="max-w-6xl mx-auto px-6 py-10">
-        <h1 className="font-display text-2xl font-semibold mb-8">Curriculum management</h1>
+        <h1 className="font-display text-2xl font-semibold mb-8">
+          Curriculum management
+        </h1>
         <AdminCurriculum initialCourses={(courses as any) ?? []} />
       </section>
     </main>

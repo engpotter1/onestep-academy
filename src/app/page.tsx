@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
 import TopNav from "@/components/TopNav";
-import AdminAnnouncementForm from "@/components/AdminAnnouncementForm";
+import AdminAnnouncements from "@/components/AdminAnnouncements";
 import AdminQuestionsDesk from "@/components/AdminQuestionsDesk";
 import Link from "next/link";
 
@@ -95,7 +95,7 @@ export default async function AdminDashboardPage() {
         <AdminQuestionsDesk initialQuestions={(questions as any) || []} />
 
         {/* قسم الإعلانات */}
-        <AdminAnnouncementForm />
+        <AdminAnnouncements initialAnnouncements={[]} />
       </div>
     </main>
   );

@@ -1,10 +1,9 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabaseServer";
 import TopNav from "@/components/TopNav";
-import AdminStudentTable from "@/components/AdminStudentTable";
-import BackButton from "@/components/BackButton";
+import AdminCurriculum from "@/components/AdminCurriculum";
 
-export default async function AdminStudentsPage() {
+export default async function AdminCoursesPage() {
   const supabase = createClient();
   const {
     data: { user },
@@ -20,32 +19,33 @@ export default async function AdminStudentsPage() {
 
   if (!profile || profile.role !== "admin") redirect("/dashboard");
 
-  const { data: students } = await supabase
-    .from("profiles")
-    .select(
-      "id, full_name, university_email, personal_email, phone_number, academic_year, is_approved, is_locked, created_at"
-    )
-    .eq("role", "student")
+  const { data: courses } = await supabase
+    .from("courses")
+    .select(`
+      id,
+      title,
+      description,
+      is_published,
+      lectures (
+        id,
+        title,
+        order_index,
+        video_url,
+        notes_url,
+        is_free
+      )
+    `)
     .order("created_at", { ascending: false });
-
-  const years = Array.from(new Set((students ?? []).map((s) => s.academic_year))).sort();
 
   return (
     <main className="min-h-screen bg-nh-black text-white" dir="rtl">
-      <TopNav role="admin" fullName={profile.full_name} />
+      <TopNav role="admin" fullName={profile?.full_name ?? "Admin"} />
 
-      <section className="max-w-6xl mx-auto px-6 py-8 space-y-6">
-        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-          <div>
-            <h1 className="text-2xl font-bold">إدارة الطلاب والمتابعة</h1>
-            <p className="text-xs text-nh-muted mt-1">
-              متابعة حسابات الطلاب، التحكم في التفعيل، ونسب مشاهدة المحاضرات.
-            </p>
-          </div>
-          <BackButton fallback="/admin" label="لوحة التحكم" />
-        </div>
-
-        <AdminStudentTable initialStudents={students ?? []} academicYears={years} />
+      <section className="max-w-6xl mx-auto px-6 py-10">
+        <h1 className="font-display text-2xl font-semibold mb-8">
+          Curriculum management
+        </h1>
+        <AdminCurriculum initialCourses={(courses as any) ?? []} />
       </section>
     </main>
   );
